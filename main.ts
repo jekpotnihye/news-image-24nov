@@ -1,10 +1,12 @@
-// World news in one image: Tuesday 24 November 2026.
+// The world in one image: Tuesday 24 November 2026.
 //
-// Draws a 1024x1024 newspaper-style front page entirely at run time with
-// Node's standard library only: a hand-rolled PNG encoder, a 5x7 bitmap
-// font, and simple shape drawing. No network, no external assets, no
-// pre-made image. The stories are embedded below as data, grounded in
-// news reports dated 24 November 2026.
+// A newspaper-style front page drawn entirely at run time with Node's
+// standard library only: a hand-rolled PNG encoder, a 5x7 bitmap font and
+// simple shape drawing. No network, no bundled assets, no pre-made image.
+// Every story below is grounded in reporting dated 23-24 November 2026;
+// weekend events are labelled with the day they happened (Sunday/Saturday)
+// so nothing is passed off as happening on Tuesday itself. The one story
+// anchored to Tuesday is the CAS verdict, due that afternoon.
 
 import { deflateSync } from "node:zlib";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
@@ -24,6 +26,14 @@ const WHITE: RGB = [255, 255, 255];
 const GOLD: RGB = [233, 180, 76];
 const BORDER: RGB = [216, 210, 190];
 const GREY: RGB = [90, 96, 110];
+const DARK: RGB = [44, 62, 80];
+const BLUE: RGB = [36, 113, 163];
+const RED: RGB = [192, 57, 43];
+const ORANGE: RGB = [211, 84, 0];
+const YELLOW: RGB = [241, 196, 15];
+const GREEN: RGB = [30, 132, 73];
+const PURPLE: RGB = [108, 52, 131];
+const TEAL: RGB = [17, 122, 101];
 
 function fillAll(color: RGB): void {
   for (let i = 0; i < pixels.length; i += 3) {
@@ -90,7 +100,6 @@ function fillTriangle(x0: number, y0: number, x1: number, y1: number, x2: number
   const maxY = Math.min(H - 1, Math.max(y0, y1, y2));
   const sign = (ax: number, ay: number, bx: number, by: number, cx: number, cy: number): number =>
     (ax - cx) * (by - cy) - (bx - cx) * (ay - cy);
-  const d0 = sign(x0, y0, x1, y1, x2, y2);
   for (let y = minY; y <= maxY; y++) {
     for (let x = minX; x <= maxX; x++) {
       const d1 = sign(x, y, x0, y0, x1, y1);
@@ -98,17 +107,15 @@ function fillTriangle(x0: number, y0: number, x1: number, y1: number, x2: number
       const d3 = sign(x, y, x2, y2, x0, y0);
       const neg = d1 < 0 || d2 < 0 || d3 < 0;
       const pos = d1 > 0 || d2 > 0 || d3 > 0;
-      if (d0 >= 0 ? !(neg && pos) : !(neg && pos)) {
-        if (!((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0))) setPixel(x, y, color);
-      }
+      if (!(neg && pos)) setPixel(x, y, color);
     }
   }
 }
 
 // ------------------------------------------------------------------- font
 
-// 5x7 bitmap glyphs, one row per string, "#" = on. Uppercase, digits and
-// the punctuation used by the text below.
+// 5x7 bitmap glyphs, one row per string, "#" = on. Only the characters
+// the copy below uses: capitals, digits and a little punctuation.
 const GLYPHS: Record<string, string[]> = {
   A: ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
   B: ["11110", "10001", "10001", "11110", "10001", "10001", "11110"],
@@ -267,15 +274,8 @@ function encodePng(): Uint8Array {
 }
 
 // ------------------------------------------------------------------ icons
-
-const BLUE: RGB = [36, 113, 163];
-const RED: RGB = [192, 57, 43];
-const ORANGE: RGB = [211, 84, 0];
-const YELLOW: RGB = [241, 196, 15];
-const GREEN: RGB = [30, 132, 73];
-const PURPLE: RGB = [108, 52, 131];
-const TEAL: RGB = [17, 122, 101];
-const DARK: RGB = [44, 62, 80];
+// Each icon is drawn around (cx, cy) and stays within about 40 px of it,
+// so it sits in the panel's left icon column without touching the divider.
 
 function iconGlobe(cx: number, cy: number): void {
   circleOutline(cx, cy, 30, 4, BLUE);
@@ -284,54 +284,59 @@ function iconGlobe(cx: number, cy: number): void {
   fillRect(cx - 18, cy - 20, 12, 9, GREEN);
   fillRect(cx + 4, cy + 8, 14, 10, GREEN);
   fillRect(cx - 6, cy - 4, 9, 7, GREEN);
-  // small red thermometer at lower right
+  // small red thermometer at lower right: the talks ran hot, then broke
   fillRect(cx + 22, cy + 18, 8, 18, RED);
   fillCircle(cx + 26, cy + 38, 7, RED);
 }
 
 function iconFlame(cx: number, cy: number): void {
-  fillTriangle(cx, cy - 34, cx - 22, cy + 22, cx + 22, cy + 22, ORANGE);
-  fillTriangle(cx, cy - 16, cx - 13, cy + 22, cx + 13, cy + 22, RED);
+  fillTriangle(cx, cy - 34, cx - 26, cy + 22, cx + 26, cy + 22, ORANGE);
+  fillTriangle(cx, cy - 16, cx - 16, cy + 22, cx + 16, cy + 22, RED);
   fillTriangle(cx, cy + 2, cx - 7, cy + 22, cx + 7, cy + 22, YELLOW);
   fillRect(cx - 26, cy + 22, 52, 6, DARK);
 }
 
-function iconBlast(cx: number, cy: number): void {
+function iconStrike(cx: number, cy: number): void {
+  // blast star above a damaged block of flats
   for (let a = 0; a < 8; a++) {
     const rad = (a * Math.PI) / 4;
-    drawLine(cx, cy - 6, Math.round(cx + 30 * Math.cos(rad)), Math.round(cy - 6 + 30 * Math.sin(rad)), 5, ORANGE);
+    drawLine(cx, cy - 18, Math.round(cx + 28 * Math.cos(rad)), Math.round(cy - 18 + 28 * Math.sin(rad)), 5, ORANGE);
   }
-  fillCircle(cx, cy - 6, 12, YELLOW);
-  fillCircle(cx, cy - 6, 6, RED);
-  // ship hull below
-  fillTriangle(cx - 26, cy + 20, cx + 26, cy + 20, cx + 16, cy + 32, DARK);
-  fillTriangle(cx - 26, cy + 20, cx - 16, cy + 32, cx + 16, cy + 32, DARK);
-  fillRect(cx - 6, cy + 8, 5, 12, DARK);
-  drawLine(cx - 34, cy + 34, cx + 34, cy + 34, 3, BLUE);
+  fillCircle(cx, cy - 18, 11, YELLOW);
+  fillCircle(cx, cy - 18, 5, RED);
+  fillRect(cx - 24, cy + 10, 48, 26, DARK);
+  fillRect(cx - 24, cy + 10, 48, 4, RED);
+  fillRect(cx - 16, cy + 18, 8, 7, PAPER);
+  fillRect(cx + 2, cy + 18, 8, 7, PAPER);
+  fillRect(cx - 16, cy + 28, 8, 7, GREY);
+  fillRect(cx + 2, cy + 28, 8, 7, PAPER);
+  drawLine(cx - 32, cy + 38, cx + 32, cy + 38, 3, GREY);
 }
 
-function iconPlacards(cx: number, cy: number): void {
-  const cols: RGB[] = [RED, BLUE, GREEN];
-  for (let i = -1; i <= 1; i++) {
-    const sx = cx + i * 22;
-    fillRect(sx - 1, cy - 6, 3, 34, DARK);
-    fillRect(sx - 11, cy - 30, 22, 24, cols[i + 1]);
-    strokeRect(sx - 11, cy - 30, 22, 24, 2, DARK);
-  }
-  for (let i = -1; i <= 1; i++) {
-    fillCircle(cx + i * 22, cy + 36, 8, [232, 180, 140]);
-  }
+function iconTruce(cx: number, cy: number): void {
+  // a flag on a pole over calm ground: the border truce
+  fillRect(cx - 28, cy - 34, 4, 70, DARK);
+  fillTriangle(cx - 24, cy - 34, cx + 20, cy - 25, cx - 24, cy - 16, WHITE);
+  strokeRect(cx - 24, cy - 34, 44, 18, 2, DARK);
+  drawLine(cx - 30, cy + 36, cx + 30, cy + 36, 3, GREEN);
+  fillTriangle(cx - 20, cy + 36, cx - 8, cy + 24, cx + 4, cy + 36, GREEN);
+  fillTriangle(cx + 6, cy + 36, cx + 18, cy + 26, cx + 28, cy + 36, GREEN);
 }
 
-function iconTennis(cx: number, cy: number): void {
-  fillCircle(cx, cy, 28, [178, 200, 60]);
-  circleOutline(cx, cy, 28, 3, DARK);
-  drawLine(cx - 24, cy - 12, cx - 4, cy - 26, 3, WHITE);
-  drawLine(cx + 4, cy + 26, cx + 24, cy + 12, 3, WHITE);
+function iconTrophy(cx: number, cy: number): void {
+  // cup, stem and base
+  fillRect(cx - 18, cy - 32, 36, 26, GOLD);
+  fillRect(cx - 18, cy - 32, 36, 5, YELLOW);
+  circleOutline(cx - 20, cy - 20, 9, 3, GOLD);
+  circleOutline(cx + 20, cy - 20, 9, 3, GOLD);
+  fillRect(cx - 4, cy - 6, 8, 16, GOLD);
+  fillRect(cx - 14, cy + 10, 28, 6, GOLD);
+  fillRect(cx - 20, cy + 16, 40, 6, DARK);
+  drawText("1", cx - 8, cy - 28, 2, INK);
 }
 
 function iconNoDrone(cx: number, cy: number): void {
-  // little drone body
+  // little drone body under a prohibition ring
   fillRect(cx - 14, cy - 8, 28, 14, DARK);
   fillCircle(cx - 20, cy - 16, 7, GREY);
   fillCircle(cx + 20, cy - 16, 7, GREY);
@@ -342,7 +347,6 @@ function iconNoDrone(cx: number, cy: number): void {
   drawLine(cx - 20, cy + 14, cx - 12, cy + 4, 3, DARK);
   drawLine(cx + 20, cy + 14, cx + 12, cy + 4, 3, DARK);
   fillRect(cx - 5, cy - 3, 10, 6, RED);
-  // prohibition ring
   circleOutline(cx, cy, 34, 5, RED);
   drawLine(cx - 24, cy + 24, cx + 24, cy - 24, 5, RED);
 }
@@ -359,44 +363,44 @@ interface Panel {
 
 const PANELS: Panel[] = [
   {
-    kicker: "COP31 - ANTALYA, TURKIYE",
-    heading: ["CLIMATE TALKS", "END IN FAILURE"],
-    body: "COP31 IN ANTALYA ENDS WITHOUT A PACT. TALKS STALL OVER FOSSIL FUELS.",
-    accent: TEAL,
-    icon: iconGlobe,
+    kicker: "UKRAINE - KYIV REGION",
+    heading: ["11 KILLED IN", "DYMER FLAT HIT"],
+    body: "A DRONE HIT A FIVE-STOREY FLAT. RESCUERS STILL SEARCH THE RUBBLE.",
+    accent: RED,
+    icon: iconStrike,
   },
   {
     kicker: "INDONESIA - BANTEN",
-    heading: ["FACTORY FIRE", "KILLS 24"],
-    body: "FIRE IN BANTEN KILLS AT LEAST 24. RESCUERS SEARCH THE WRECKAGE.",
+    heading: ["24 DEAD IN", "FACTORY FIRE"],
+    body: "CANDY FACTORY FIRE KILLS 24. DOZENS STILL MISSING AS SEARCH GOES ON.",
     accent: ORANGE,
     icon: iconFlame,
   },
   {
-    kicker: "UKRAINE - RUSSIA WAR",
-    heading: ["STRIKES HIT", "KYIV REGION"],
-    body: "RUSSIAN STRIKES KILL 10 IN DYMER. A RUSSIAN SHIP BURNS OFF FINLAND.",
-    accent: RED,
-    icon: iconBlast,
+    kicker: "COP31 - ANTALYA, TURKIYE",
+    heading: ["CLIMATE TALKS", "END IN NO DEAL"],
+    body: "SUNDAY COLLAPSE OVER FOSSIL FUELS LEAVES NEXT STEPS UNCLEAR.",
+    accent: TEAL,
+    icon: iconGlobe,
   },
   {
-    kicker: "PORTUGAL - PROTEST",
-    heading: ["THOUSANDS MARCH", "IN LISBON"],
-    body: "THOUSANDS MARCH IN LISBON OVER LIVING COSTS, HOUSING AND LOW WAGES.",
-    accent: PURPLE,
-    icon: iconPlacards,
-  },
-  {
-    kicker: "TENNIS - TURIN",
-    heading: ["ALCARAZ WINS", "ATP FINALS"],
-    body: "BEATS ALEXANDER ZVEREV IN TURIN FOR A FIRST ATP FINALS TITLE.",
+    kicker: "THAILAND - CAMBODIA",
+    heading: ["CEASEFIRE", "HOLDS ON BORDER"],
+    body: "TRUCE HOLDS AFTER WEEKS OF FIGHTING. DISPLACED CIVILIANS MAY RETURN.",
     accent: GREEN,
-    icon: iconTennis,
+    icon: iconTruce,
   },
   {
-    kicker: "UNITED NATIONS",
-    heading: ["ROBOT WEAPONS:", "NO AGREEMENT"],
-    body: "UN TALKS ON LETHAL AUTONOMOUS WEAPONS END WITH NO AGREEMENT.",
+    kicker: "FOOTBALL - CAS, LAUSANNE",
+    heading: ["TITLE VERDICT", "DUE TODAY"],
+    body: "SENEGAL APPEAL OVER STRIPPED TITLE DECIDED THIS AFTERNOON.",
+    accent: PURPLE,
+    icon: iconTrophy,
+  },
+  {
+    kicker: "UNITED NATIONS - GENEVA",
+    heading: ["KILLER ROBOTS", "NO BINDING DEAL"],
+    body: "NATIONS AGREE ONLY TO MORE TALKS. A POSSIBLE ACCORD BY 2028.",
     accent: BLUE,
     icon: iconNoDrone,
   },
@@ -409,14 +413,13 @@ function drawHeader(): void {
   fillRect(0, 132, W, 4, GOLD);
   drawTextCentered("THE WORLD IN ONE PICTURE", W / 2, 14, 2, GOLD);
   drawTextCentered("24 NOVEMBER 2026", W / 2, 40, 7, WHITE);
-  drawTextCentered("TUESDAY - SIX STORIES FROM AROUND THE WORLD", W / 2, 100, 3, PAPER);
+  drawTextCentered("TUESDAY - SIX STORIES REPORTED AROUND THE WORLD", W / 2, 100, 3, PAPER);
 }
 
 function drawPanel(panel: Panel, x: number, y: number, w: number, h: number): void {
   fillRect(x, y, w, h, WHITE);
   strokeRect(x, y, w, h, 2, BORDER);
   fillRect(x, y, w, 10, panel.accent);
-  // icon column on the left
   panel.icon(x + 46, y + 128);
   drawLine(x + 92, y + 18, x + 92, y + h - 18, 2, BORDER);
   const tx = x + 106;
@@ -439,9 +442,9 @@ function drawFooter(): void {
   fillRect(0, 916, W, 108, INK);
   fillRect(0, 916, W, 4, GOLD);
   const lines = [
-    "ALSO: FIJI CLOSES SCHOOLS",
-    "FOR FIVE DAYS AS DROUGHT DEEPENS.",
-    "INDIA AND NEPAL FLAG OFF SARYU-KAMALA EXPRESS.",
+    "ALSO: SPARTA II, HIT BY DRONES, REACHES ST PETERSBURG.",
+    "FIJI TO CLOSE SCHOOLS 30 NOV-4 DEC AS DROUGHT DEEPENS.",
+    "LISBON: THOUSANDS MARCHED ON SATURDAY OVER LIVING COSTS.",
   ];
   let y = 932;
   for (const line of lines) {
