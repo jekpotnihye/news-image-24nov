@@ -16,30 +16,34 @@ The output is deterministic: two runs produce byte-identical PNGs.
 
 Six panels, plus three more in the footer strip. Weekend events are labelled
 with the day they happened, so nothing is passed off as happening on Tuesday
-itself; the Tuesday-anchored story is the CAS verdict due that afternoon.
+itself. The CAS verdict was still unannounced on Tuesday morning, due that
+afternoon, so the panel says so and does not guess the outcome.
 
-- **Ukraine, Kyiv region** — a drone hit a five-storey block of flats in
-  Dymer; the toll rose to 11 as rescuers searched the rubble
-  (Reuters/AP reporting, 23 November 2026).
-- **Indonesia, Banten** — fire at the PT Fonusa Agung Mulia candy factory;
-  24 dead confirmed, dozens still missing as the search went on
+- **Ukraine, Kyiv region** — Sunday drone hit a five-storey block of flats
+  in Dymer; 11 killed, and a boy aged 7 and a woman aged 79 were pulled
+  alive from the rubble (Reuters, 23 November 2026).
+- **Indonesia, Banten** — Saturday fire at the PT Fonusa Agung Mulia candy
+  factory; 24 dead confirmed, about 30 still missing as the search went on
   (Reuters, 23 November 2026).
-- **COP31, Antalya** — Sunday's collapse of the climate talks over fossil
-  fuels, with no overarching deal agreed (CNN/BusinessWorld, 22–23 November
-  2026).
-- **Thailand–Cambodia** — the ceasefire held after weeks of border
-  fighting, with displaced civilians able to return (Cambodia News Gazette /
-  Mercury News, 23 November 2026).
-- **Football, CAS Lausanne** — Senegal's appeal over its stripped Africa Cup
-  of Nations title to be decided on Tuesday afternoon, 24 November 2026
-  (Reuters, 23 November 2026).
-- **United Nations, Geneva** — talks on lethal autonomous weapons agreed
-  only to more talks, with a possible accord by 2028 and no binding rules
-  (AP/NPR, 20–21 November 2026).
+- **Poland, NATO border** — a Russian drone briefly entered Polish
+  airspace overnight during an attack on western Ukraine; Warsaw held
+  fire after it turned back east (Reuters, 24 November 2026).
+- **COP31, Antalya** — Sunday's collapse of the climate talks: the pact
+  was rejected after fossil fuels were left out of the text, in the
+  longest COP ever (CNN/WRI, 22–23 November 2026).
+- **Thailand–Cambodia** — the Saturday truce held, the border stayed
+  calm, and displaced families could return (Cambodia News Gazette,
+  23 November 2026).
+- **Football, CAS Lausanne** — Senegal's appeal over its stripped Africa
+  Cup of Nations title: decision due Tuesday afternoon, 24 November
+  2026; no outcome had been announced when this image was built
+  (Reuters/CAS statement, 23 November 2026).
 - **Footer** — the drone-hit cargo ship Sparta II reached St Petersburg
-  under tow (Reuters); Fiji to close all schools 30 November–4 December as
-  the El Niño drought deepens (PINA, 24 November 2026); thousands marched
-  in Lisbon on Saturday over living costs (Reuters, 21 November 2026).
+  under tow on Monday (Reuters, 23 November 2026); Fiji to close all
+  schools 30 November–4 December as the El Niño drought deepens
+  (PINA, 24 November 2026); Sheikh Hasina plans to return to Bangladesh
+  on 16 December, her spokesperson said on Tuesday (Reuters,
+  24 November 2026).
 
 Run it locally:
 

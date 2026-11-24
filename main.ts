@@ -1,12 +1,21 @@
 // The world in one image: Tuesday 24 November 2026.
 //
-// A newspaper-style front page drawn entirely at run time with Node's
-// standard library only: a hand-rolled PNG encoder, a 5x7 bitmap font and
-// simple shape drawing. No network, no bundled assets, no pre-made image.
-// Every story below is grounded in reporting dated 23-24 November 2026;
-// weekend events are labelled with the day they happened (Sunday/Saturday)
-// so nothing is passed off as happening on Tuesday itself. The one story
-// anchored to Tuesday is the CAS verdict, due that afternoon.
+// Polish 2. A newspaper-style front page drawn entirely at run time with
+// Node's standard library only: a hand-rolled PNG encoder, a 5x7 bitmap
+// font and simple shape drawing. No network, no bundled assets, no
+// pre-made image. The output is deterministic: the same bytes every run.
+//
+// What changed since polish 1: a new panel for the overnight Russian
+// drone that briefly entered Polish airspace (reported Tuesday by
+// Reuters from the Polish armed forces), replacing the older Geneva
+// autonomous-weapons story, which is now three days old. The other
+// panels carry tighter, better-dated copy: the Dymer rescue, the
+// Saturday dating of the Banten fire and the Thai-Cambodia truce, and
+// the fossil-fuels reason COP31 collapsed. The CAS panel still does NOT
+// guess the outcome: as of Tuesday morning the ruling was due that
+// afternoon and had not been announced, and an unverified leak is not
+// treated as the result. The footer swaps the Lisbon march for Sheikh
+// Hasina's Tuesday-announced plan to return to Bangladesh.
 
 import { deflateSync } from "node:zlib";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
@@ -278,15 +287,14 @@ function encodePng(): Uint8Array {
 // so it sits in the panel's left icon column without touching the divider.
 
 function iconGlobe(cx: number, cy: number): void {
+  // A plain globe: outline, meridians and two land blobs. Polish 1's
+  // thermometer cluttered this icon, so it is gone.
   circleOutline(cx, cy, 30, 4, BLUE);
   drawLine(cx - 30, cy, cx + 30, cy, 3, BLUE);
   drawLine(cx, cy - 30, cx, cy + 30, 3, BLUE);
   fillRect(cx - 18, cy - 20, 12, 9, GREEN);
   fillRect(cx + 4, cy + 8, 14, 10, GREEN);
   fillRect(cx - 6, cy - 4, 9, 7, GREEN);
-  // small red thermometer at lower right: the talks ran hot, then broke
-  fillRect(cx + 22, cy + 18, 8, 18, RED);
-  fillCircle(cx + 26, cy + 38, 7, RED);
 }
 
 function iconFlame(cx: number, cy: number): void {
@@ -297,7 +305,7 @@ function iconFlame(cx: number, cy: number): void {
 }
 
 function iconStrike(cx: number, cy: number): void {
-  // blast star above a damaged block of flats
+  // Blast star above a damaged block of flats.
   for (let a = 0; a < 8; a++) {
     const rad = (a * Math.PI) / 4;
     drawLine(cx, cy - 18, Math.round(cx + 28 * Math.cos(rad)), Math.round(cy - 18 + 28 * Math.sin(rad)), 5, ORANGE);
@@ -313,8 +321,30 @@ function iconStrike(cx: number, cy: number): void {
   drawLine(cx - 32, cy + 38, cx + 32, cy + 38, 3, GREY);
 }
 
+function iconRadar(cx: number, cy: number): void {
+  // NEW in polish 2: radar rings and sweep picking up a small drone
+  // crossing the border line at the bottom. The drone turned back, so
+  // the sweep stops short of the centre: no shoot-down is shown.
+  circleOutline(cx, cy, 30, 3, BLUE);
+  circleOutline(cx, cy, 19, 2, BLUE);
+  fillCircle(cx, cy, 4, BLUE);
+  drawLine(cx, cy, cx + 22, cy - 22, 3, BLUE);
+  drawLine(cx - 32, cy + 34, cx + 32, cy + 34, 3, GREY);
+  // Drone: dark body, red light, four grey rotors, upper right.
+  fillRect(cx + 10, cy - 26, 22, 10, DARK);
+  fillRect(cx + 18, cy - 23, 6, 4, RED);
+  fillCircle(cx + 8, cy - 30, 6, GREY);
+  fillCircle(cx + 34, cy - 30, 6, GREY);
+  fillCircle(cx + 8, cy - 12, 6, GREY);
+  fillCircle(cx + 34, cy - 12, 6, GREY);
+  drawLine(cx + 8, cy - 30, cx + 12, cy - 24, 2, DARK);
+  drawLine(cx + 34, cy - 30, cx + 30, cy - 24, 2, DARK);
+  drawLine(cx + 8, cy - 12, cx + 12, cy - 18, 2, DARK);
+  drawLine(cx + 34, cy - 12, cx + 30, cy - 18, 2, DARK);
+}
+
 function iconTruce(cx: number, cy: number): void {
-  // a flag on a pole over calm ground: the border truce
+  // A flag on a pole over calm ground: the border truce.
   fillRect(cx - 28, cy - 34, 4, 70, DARK);
   fillTriangle(cx - 24, cy - 34, cx + 20, cy - 25, cx - 24, cy - 16, WHITE);
   strokeRect(cx - 24, cy - 34, 44, 18, 2, DARK);
@@ -324,7 +354,7 @@ function iconTruce(cx: number, cy: number): void {
 }
 
 function iconTrophy(cx: number, cy: number): void {
-  // cup, stem and base
+  // Cup, stem and base; the "1" marks the title at stake, not a winner.
   fillRect(cx - 18, cy - 32, 36, 26, GOLD);
   fillRect(cx - 18, cy - 32, 36, 5, YELLOW);
   circleOutline(cx - 20, cy - 20, 9, 3, GOLD);
@@ -333,22 +363,6 @@ function iconTrophy(cx: number, cy: number): void {
   fillRect(cx - 14, cy + 10, 28, 6, GOLD);
   fillRect(cx - 20, cy + 16, 40, 6, DARK);
   drawText("1", cx - 8, cy - 28, 2, INK);
-}
-
-function iconNoDrone(cx: number, cy: number): void {
-  // little drone body under a prohibition ring
-  fillRect(cx - 14, cy - 8, 28, 14, DARK);
-  fillCircle(cx - 20, cy - 16, 7, GREY);
-  fillCircle(cx + 20, cy - 16, 7, GREY);
-  fillCircle(cx - 20, cy + 14, 7, GREY);
-  fillCircle(cx + 20, cy + 14, 7, GREY);
-  drawLine(cx - 20, cy - 16, cx - 12, cy - 6, 3, DARK);
-  drawLine(cx + 20, cy - 16, cx + 12, cy - 6, 3, DARK);
-  drawLine(cx - 20, cy + 14, cx - 12, cy + 4, 3, DARK);
-  drawLine(cx + 20, cy + 14, cx + 12, cy + 4, 3, DARK);
-  fillRect(cx - 5, cy - 3, 10, 6, RED);
-  circleOutline(cx, cy, 34, 5, RED);
-  drawLine(cx - 24, cy + 24, cx + 24, cy - 24, 5, RED);
 }
 
 // ---------------------------------------------------------------- content
@@ -365,44 +379,44 @@ const PANELS: Panel[] = [
   {
     kicker: "UKRAINE - KYIV REGION",
     heading: ["11 KILLED IN", "DYMER FLAT HIT"],
-    body: "A DRONE HIT A FIVE-STOREY FLAT. RESCUERS STILL SEARCH THE RUBBLE.",
+    body: "SUNDAY DRONE HIT A FIVE-STOREY FLAT. BOY, 7, AND WOMAN, 79, PULLED ALIVE.",
     accent: RED,
     icon: iconStrike,
   },
   {
     kicker: "INDONESIA - BANTEN",
     heading: ["24 DEAD IN", "FACTORY FIRE"],
-    body: "CANDY FACTORY FIRE KILLS 24. DOZENS STILL MISSING AS SEARCH GOES ON.",
+    body: "SATURDAY FIRE AT CANDY FACTORY. ABOUT 30 STILL MISSING, SEARCH GOES ON.",
     accent: ORANGE,
     icon: iconFlame,
   },
   {
+    kicker: "POLAND - NATO BORDER",
+    heading: ["RUSSIAN DRONE", "IN POLISH SKY"],
+    body: "BRIEFLY IN POLISH AIRSPACE OVERNIGHT. WARSAW HELD FIRE AS IT TURNED BACK.",
+    accent: BLUE,
+    icon: iconRadar,
+  },
+  {
     kicker: "COP31 - ANTALYA, TURKIYE",
     heading: ["CLIMATE TALKS", "END IN NO DEAL"],
-    body: "SUNDAY COLLAPSE OVER FOSSIL FUELS LEAVES NEXT STEPS UNCLEAR.",
+    body: "SUNDAY: PACT REJECTED AS FOSSIL FUELS WERE LEFT OUT. LONGEST COP EVER.",
     accent: TEAL,
     icon: iconGlobe,
   },
   {
     kicker: "THAILAND - CAMBODIA",
     heading: ["CEASEFIRE", "HOLDS ON BORDER"],
-    body: "TRUCE HOLDS AFTER WEEKS OF FIGHTING. DISPLACED CIVILIANS MAY RETURN.",
+    body: "SATURDAY TRUCE HOLDS. BORDER CALM, DISPLACED FAMILIES MAY RETURN.",
     accent: GREEN,
     icon: iconTruce,
   },
   {
     kicker: "FOOTBALL - CAS, LAUSANNE",
     heading: ["TITLE VERDICT", "DUE TODAY"],
-    body: "SENEGAL APPEAL OVER STRIPPED TITLE DECIDED THIS AFTERNOON.",
+    body: "SENEGAL APPEAL OVER STRIPPED TITLE. DECISION DUE THIS AFTERNOON.",
     accent: PURPLE,
     icon: iconTrophy,
-  },
-  {
-    kicker: "UNITED NATIONS - GENEVA",
-    heading: ["KILLER ROBOTS", "NO BINDING DEAL"],
-    body: "NATIONS AGREE ONLY TO MORE TALKS. A POSSIBLE ACCORD BY 2028.",
-    accent: BLUE,
-    icon: iconNoDrone,
   },
 ];
 
@@ -413,7 +427,7 @@ function drawHeader(): void {
   fillRect(0, 132, W, 4, GOLD);
   drawTextCentered("THE WORLD IN ONE PICTURE", W / 2, 14, 2, GOLD);
   drawTextCentered("24 NOVEMBER 2026", W / 2, 40, 7, WHITE);
-  drawTextCentered("TUESDAY - SIX STORIES REPORTED AROUND THE WORLD", W / 2, 100, 3, PAPER);
+  drawTextCentered("SIX STORIES AS REPORTED ON TUESDAY 24 NOVEMBER", W / 2, 100, 3, PAPER);
 }
 
 function drawPanel(panel: Panel, x: number, y: number, w: number, h: number): void {
@@ -442,9 +456,9 @@ function drawFooter(): void {
   fillRect(0, 916, W, 108, INK);
   fillRect(0, 916, W, 4, GOLD);
   const lines = [
-    "ALSO: SPARTA II, HIT BY DRONES, REACHES ST PETERSBURG.",
+    "ALSO: DRONE-HIT SPARTA II REACHED ST PETERSBURG MONDAY.",
     "FIJI TO CLOSE SCHOOLS 30 NOV-4 DEC AS DROUGHT DEEPENS.",
-    "LISBON: THOUSANDS MARCHED ON SATURDAY OVER LIVING COSTS.",
+    "HASINA PLANS RETURN TO BANGLADESH ON 16 DEC.",
   ];
   let y = 932;
   for (const line of lines) {
