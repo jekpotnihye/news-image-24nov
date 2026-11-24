@@ -1,21 +1,23 @@
 // The world in one image: Tuesday 24 November 2026.
 //
-// Polish 2. A newspaper-style front page drawn entirely at run time with
-// Node's standard library only: a hand-rolled PNG encoder, a 5x7 bitmap
-// font and simple shape drawing. No network, no bundled assets, no
-// pre-made image. The output is deterministic: the same bytes every run.
+// Polish 3 (final). A newspaper front page drawn entirely at run time
+// with Node's standard library only: a hand-rolled PNG encoder, a 5x7
+// bitmap font and simple shape drawing. No network, no bundled assets,
+// no pre-made image. The output is deterministic: the same bytes on
+// every run.
 //
-// What changed since polish 1: a new panel for the overnight Russian
-// drone that briefly entered Polish airspace (reported Tuesday by
-// Reuters from the Polish armed forces), replacing the older Geneva
-// autonomous-weapons story, which is now three days old. The other
-// panels carry tighter, better-dated copy: the Dymer rescue, the
-// Saturday dating of the Banten fire and the Thai-Cambodia truce, and
-// the fossil-fuels reason COP31 collapsed. The CAS panel still does NOT
-// guess the outcome: as of Tuesday morning the ruling was due that
-// afternoon and had not been announced, and an unverified leak is not
-// treated as the result. The footer swaps the Lisbon march for Sheikh
-// Hasina's Tuesday-announced plan to return to Bangladesh.
+// What changed since polish 2: the biggest Tuesday market story joins
+// the six panels. Nvidia reinstated Jensen Huang as chief executive on
+// Monday and shares jumped by about a third, with Asian stocks
+// rallying on Tuesday; it takes a panel of its own, with a rising
+// chart icon. The Thailand-Cambodia truce moves to the footer, which
+// grows to four lines so the Monday Iran blockade warning can join
+// it. The Poland panel now says plainly that no shot was fired. The
+// CAS panel still does NOT guess the outcome: as of Tuesday morning
+// the ruling was due that afternoon and no official announcement had
+// been made; a newspaper leak is not the verdict, and CAS itself said
+// only its own channels count. Weekend events stay labelled with
+// their day.
 
 import { deflateSync } from "node:zlib";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
@@ -43,6 +45,7 @@ const YELLOW: RGB = [241, 196, 15];
 const GREEN: RGB = [30, 132, 73];
 const PURPLE: RGB = [108, 52, 131];
 const TEAL: RGB = [17, 122, 101];
+const CHART: RGB = [85, 140, 0];
 
 function fillAll(color: RGB): void {
   for (let i = 0; i < pixels.length; i += 3) {
@@ -123,7 +126,7 @@ function fillTriangle(x0: number, y0: number, x1: number, y1: number, x2: number
 
 // ------------------------------------------------------------------- font
 
-// 5x7 bitmap glyphs, one row per string, "#" = on. Only the characters
+// 5x7 bitmap glyphs, one row per string, "1" = on. Only the characters
 // the copy below uses: capitals, digits and a little punctuation.
 const GLYPHS: Record<string, string[]> = {
   A: ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
@@ -287,8 +290,7 @@ function encodePng(): Uint8Array {
 // so it sits in the panel's left icon column without touching the divider.
 
 function iconGlobe(cx: number, cy: number): void {
-  // A plain globe: outline, meridians and two land blobs. Polish 1's
-  // thermometer cluttered this icon, so it is gone.
+  // A plain globe: outline, meridians and two land blobs.
   circleOutline(cx, cy, 30, 4, BLUE);
   drawLine(cx - 30, cy, cx + 30, cy, 3, BLUE);
   drawLine(cx, cy - 30, cx, cy + 30, 3, BLUE);
@@ -322,9 +324,8 @@ function iconStrike(cx: number, cy: number): void {
 }
 
 function iconRadar(cx: number, cy: number): void {
-  // NEW in polish 2: radar rings and sweep picking up a small drone
-  // crossing the border line at the bottom. The drone turned back, so
-  // the sweep stops short of the centre: no shoot-down is shown.
+  // Radar rings and sweep picking up a small drone crossing the border
+  // line at the bottom. The drone turned back, so no shoot-down is shown.
   circleOutline(cx, cy, 30, 3, BLUE);
   circleOutline(cx, cy, 19, 2, BLUE);
   fillCircle(cx, cy, 4, BLUE);
@@ -343,14 +344,16 @@ function iconRadar(cx: number, cy: number): void {
   drawLine(cx + 34, cy - 12, cx + 30, cy - 18, 2, DARK);
 }
 
-function iconTruce(cx: number, cy: number): void {
-  // A flag on a pole over calm ground: the border truce.
-  fillRect(cx - 28, cy - 34, 4, 70, DARK);
-  fillTriangle(cx - 24, cy - 34, cx + 20, cy - 25, cx - 24, cy - 16, WHITE);
-  strokeRect(cx - 24, cy - 34, 44, 18, 2, DARK);
-  drawLine(cx - 30, cy + 36, cx + 30, cy + 36, 3, GREEN);
-  fillTriangle(cx - 20, cy + 36, cx - 8, cy + 24, cx + 4, cy + 36, GREEN);
-  fillTriangle(cx + 6, cy + 36, cx + 18, cy + 26, cx + 28, cy + 36, GREEN);
+function iconChart(cx: number, cy: number): void {
+  // NEW in polish 3: rising bars and an arrow for the market rally.
+  // The arrow climbs from lower left to upper right, past the bars.
+  fillRect(cx - 24, cy + 10, 10, 20, CHART);
+  fillRect(cx - 8, cy - 2, 10, 32, CHART);
+  fillRect(cx + 8, cy - 14, 10, 44, CHART);
+  drawLine(cx - 30, cy + 32, cx + 30, cy + 32, 3, DARK);
+  drawLine(cx - 30, cy + 32, cx - 30, cy - 30, 3, DARK);
+  drawLine(cx - 26, cy + 12, cx + 24, cy - 26, 4, INK);
+  fillTriangle(cx + 24, cy - 26, cx + 12, cy - 24, cx + 22, cy - 14, INK);
 }
 
 function iconTrophy(cx: number, cy: number): void {
@@ -393,7 +396,7 @@ const PANELS: Panel[] = [
   {
     kicker: "POLAND - NATO BORDER",
     heading: ["RUSSIAN DRONE", "IN POLISH SKY"],
-    body: "BRIEFLY IN POLISH AIRSPACE OVERNIGHT. WARSAW HELD FIRE AS IT TURNED BACK.",
+    body: "BRIEFLY IN POLISH AIRSPACE OVERNIGHT. NO SHOT FIRED AS IT TURNED EAST.",
     accent: BLUE,
     icon: iconRadar,
   },
@@ -405,16 +408,16 @@ const PANELS: Panel[] = [
     icon: iconGlobe,
   },
   {
-    kicker: "THAILAND - CAMBODIA",
-    heading: ["CEASEFIRE", "HOLDS ON BORDER"],
-    body: "SATURDAY TRUCE HOLDS. BORDER CALM, DISPLACED FAMILIES MAY RETURN.",
-    accent: GREEN,
-    icon: iconTruce,
+    kicker: "TECH - NVIDIA, USA",
+    heading: ["NVIDIA CHIEF", "BACK IN CHARGE"],
+    body: "REINSTATED MONDAY. SHARES JUMPED A THIRD. ASIAN STOCKS RALLIED TUESDAY.",
+    accent: CHART,
+    icon: iconChart,
   },
   {
     kicker: "FOOTBALL - CAS, LAUSANNE",
     heading: ["TITLE VERDICT", "DUE TODAY"],
-    body: "SENEGAL APPEAL OVER STRIPPED TITLE. DECISION DUE THIS AFTERNOON.",
+    body: "SENEGAL APPEAL OVER STRIPPED TITLE. DECISION DUE THIS AFTERNOON, CAS SAID.",
     accent: PURPLE,
     icon: iconTrophy,
   },
@@ -453,17 +456,18 @@ function drawPanel(panel: Panel, x: number, y: number, w: number, h: number): vo
 }
 
 function drawFooter(): void {
-  fillRect(0, 916, W, 108, INK);
-  fillRect(0, 916, W, 4, GOLD);
+  fillRect(0, 886, W, 138, INK);
+  fillRect(0, 886, W, 4, GOLD);
   const lines = [
-    "ALSO: DRONE-HIT SPARTA II REACHED ST PETERSBURG MONDAY.",
-    "FIJI TO CLOSE SCHOOLS 30 NOV-4 DEC AS DROUGHT DEEPENS.",
+    "ALSO: THAI-CAMBODIA TRUCE HOLDS. BORDER CALM.",
+    "IRAN VOWS TO CONFRONT US NAVAL BLOCKADE.",
+    "FIJI TO CLOSE SCHOOLS 30 NOV-4 DEC IN DROUGHT.",
     "HASINA PLANS RETURN TO BANGLADESH ON 16 DEC.",
   ];
-  let y = 932;
+  let y = 902;
   for (const line of lines) {
     drawTextCentered(line, W / 2, y, 3, PAPER);
-    y += 28;
+    y += 27;
   }
 }
 
@@ -473,12 +477,12 @@ function main(): void {
   const margin = 24;
   const gap = 16;
   const colW = Math.floor((W - margin * 2 - gap) / 2);
-  const rowH = 246;
-  const top = 148;
+  const rowH = 238;
+  const top = 146;
   for (let i = 0; i < PANELS.length; i++) {
     const col = i % 2;
     const row = Math.floor(i / 2);
-    drawPanel(PANELS[i], margin + col * (colW + gap), top + row * (rowH + 12), colW, rowH);
+    drawPanel(PANELS[i], margin + col * (colW + gap), top + row * (rowH + 10), colW, rowH);
   }
   drawFooter();
   const png = encodePng();
